@@ -1,4 +1,4 @@
-lockfileVersionlockfileVersion: '9.0'
+lockfileVersion: '9.0'
 
 settings:
   autoInstallPeers: true
@@ -7,7 +7,7 @@ settings:
 importers:
 
   .:
-  lockfileVersion
+    dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.8.0
         version: 1.8.0
