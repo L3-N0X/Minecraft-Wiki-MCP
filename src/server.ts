@@ -58,7 +58,8 @@ const LIST_CATEGORY_MEMBERS_MINECRAFTWIKI_TOOL: Tool = {
     properties: {
       category: {
         type: "string",
-        description: "The name of the category to list members from (e.g., 'Loot tables').",
+        description:
+          "The name of the category to list members from (e.g., 'Items', 'Blocks', 'Entities', 'Structure Blueprints').",
       },
       limit: {
         type: "number",
@@ -93,6 +94,54 @@ const RESOLVE_REDIRECT_MINECRAFTWIKI_TOOL: Tool = {
       title: {
         type: "string",
         description: "Title of the page to resolve the redirect for.",
+      },
+    },
+    required: ["title"],
+  },
+};
+
+const LIST_ALL_CATEGORIES_MINECRAFTWIKI_TOOL: Tool = {
+  name: "MinecraftWiki_listAllCategories",
+  description: "List all categories in the Minecraft Wiki.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      prefix: {
+        type: "string",
+        description: "Filters categories by prefix.",
+      },
+      limit: {
+        type: "number",
+        description: "The maximum number of categories to return (default: 10, max: 500).",
+      },
+    },
+  },
+};
+
+const GET_CATEGORIES_FOR_PAGE_MINECRAFTWIKI_TOOL: Tool = {
+  name: "MinecraftWiki_getCategoriesForPage",
+  description: "Get categories associated with a specific page.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      title: {
+        type: "string",
+        description: "Title of the page to retrieve categories for.",
+      },
+    },
+    required: ["title"],
+  },
+};
+
+const GET_SECTIONS_IN_PAGE_MINECRAFTWIKI_TOOL: Tool = {
+  name: "MinecraftWiki_getSectionsInPage",
+  description: "Retrieves an overview of all sections in the page.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      title: {
+        type: "string",
+        description: "Title of the page to retrieve sections for.",
       },
     },
     required: ["title"],
@@ -154,6 +203,33 @@ function isGetPageContentArgs(args: unknown): args is { title: string } {
 }
 
 function isResolveRedirectArgs(args: unknown): args is { title: string } {
+  return (
+    typeof args === "object" &&
+    args !== null &&
+    "title" in args &&
+    typeof (args as { title: string }).title === "string"
+  );
+}
+
+function isListAllCategoriesArgs(args: unknown): args is { prefix?: string; limit?: number } {
+  return (
+    typeof args === "object" &&
+    args !== null &&
+    ("prefix" in args ? typeof (args as { prefix: string }).prefix === "string" : true) &&
+    ("limit" in args ? typeof (args as { limit: number }).limit === "number" : true)
+  );
+}
+
+function isGetCategoriesForPageArgs(args: unknown): args is { title: string } {
+  return (
+    typeof args === "object" &&
+    args !== null &&
+    "title" in args &&
+    typeof (args as { title: string }).title === "string"
+  );
+}
+
+function isGetSectionsInPageArgs(args: unknown): args is { title: string } {
   return (
     typeof args === "object" &&
     args !== null &&
@@ -274,34 +350,28 @@ async function getPageSectionMinecraftWiki(title: string, sectionIndex: number) 
   try {
     const response = await axios.get(WIKIMEDIA_API_URL, {
       params: {
-        action: "query",
+        action: "parse",
         format: "json",
         page: title,
-        sectionindex: sectionIndex,
+        section: sectionIndex,
         origin: "*",
       },
     });
 
-    console.log("Response data:", response); // Debugging line
-
     if (response.data.error) {
-      console.error("API error:", response.data.error);
       throw new Error(
         `Error fetching section ${sectionIndex} of "${title}": ${response.data.error.info}`
       );
     }
 
     if (!response.data.parse || !response.data.parse.text) {
-      console.error("Unexpected response structure:", response.data);
       throw new Error(`Unexpected response structure for "${title}" section ${sectionIndex}`);
     }
 
     const sectionContent = response.data.parse.text["*"];
-    console.log("Section content before cleaning:", sectionContent);
 
     // Remove HTML tags from section content
     const cleanedSectionContent = sectionContent.replace(/<[^>]*>/g, "");
-    console.log("Cleaned section content:", cleanedSectionContent);
 
     return cleanedSectionContent;
   } catch (error) {
@@ -319,6 +389,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     LIST_CATEGORY_MEMBERS_MINECRAFTWIKI_TOOL,
     GET_PAGE_CONTENT_MINECRAFTWIKI_TOOL,
     RESOLVE_REDIRECT_MINECRAFTWIKI_TOOL,
+    LIST_ALL_CATEGORIES_MINECRAFTWIKI_TOOL,
+    GET_CATEGORIES_FOR_PAGE_MINECRAFTWIKI_TOOL,
+    GET_SECTIONS_IN_PAGE_MINECRAFTWIKI_TOOL,
   ],
 }));
 
@@ -396,6 +469,45 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      case "MinecraftWiki_listAllCategories": {
+        if (!isListAllCategoriesArgs(args)) {
+          throw new Error("Invalid arguments for listAllCategories");
+        }
+        const { prefix, limit } = args;
+        const results = await listAllCategoriesMinecraftWiki(prefix, limit);
+        console.log("All categories:", results);
+        return {
+          content: [{ type: "text", text: results }],
+          isError: false,
+        };
+      }
+
+      case "MinecraftWiki_getCategoriesForPage": {
+        if (!isGetCategoriesForPageArgs(args)) {
+          throw new Error("Invalid arguments for getCategoriesForPage");
+        }
+        const { title } = args;
+        const results = await getCategoriesForPageMinecraftWiki(title);
+        console.log("Categories for page:", results);
+        return {
+          content: [{ type: "text", text: results }],
+          isError: false,
+        };
+      }
+
+      case "MinecraftWiki_getSectionsInPage": {
+        if (!isGetSectionsInPageArgs(args)) {
+          throw new Error("Invalid arguments for getSectionsInPage");
+        }
+        const { title } = args;
+        const results = await getSectionsInPageMinecraftWiki(title);
+        console.log("Sections in page:", results);
+        return {
+          content: [{ type: "text", text: results }],
+          isError: false,
+        };
+      }
+
       default:
         return {
           content: [{ type: "text", text: `Unknown tool: ${name}` }],
@@ -414,6 +526,95 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     };
   }
 });
+
+async function listAllCategoriesMinecraftWiki(prefix?: string, limit: number = 10) {
+  try {
+    const response = await axios.get(WIKIMEDIA_API_URL, {
+      params: {
+        action: "query",
+        format: "json",
+        list: "allcategories",
+        acprefix: prefix,
+        aclimit: limit,
+        origin: "*",
+      },
+    });
+
+    const results = response.data.query.allcategories.map((item: any) => item["*"]);
+    return results.join("\n");
+  } catch (error) {
+    throw new Error(
+      `Error fetching all categories: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+  }
+}
+
+async function getCategoriesForPageMinecraftWiki(title: string) {
+  try {
+    const response = await axios.get(WIKIMEDIA_API_URL, {
+      params: {
+        action: "query",
+        format: "json",
+        titles: title,
+        prop: "categories",
+        origin: "*",
+      },
+    });
+
+    const pages = response.data.query.pages;
+    const page = Object.values(pages)[0] as { categories?: [{ title: string }]; missing?: boolean };
+
+    if (page.missing) {
+      throw new Error(`Page "${title}" not found.`);
+    }
+
+    if (!page.categories) {
+      return `No categories found for page "${title}"`;
+    }
+
+    const results = page.categories.map((item: any) => item.title);
+    return results.join("\n");
+  } catch (error) {
+    throw new Error(
+      `Error fetching categories for page: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+}
+
+async function getSectionsInPageMinecraftWiki(title: string) {
+  try {
+    const response = await axios.get(WIKIMEDIA_API_URL, {
+      params: {
+        action: "parse",
+        format: "json",
+        page: title,
+        prop: "sections",
+        origin: "*",
+      },
+    });
+
+    if (response.data.error) {
+      throw new Error(`Error fetching sections for "${title}": ${response.data.error.info}`);
+    }
+
+    if (!response.data.parse || !response.data.parse.sections) {
+      throw new Error(`Unexpected response structure for sections of "${title}"`);
+    }
+
+    const results = response.data.parse.sections.map(
+      (item: any) => `Section ${item.index}: ${item.line}`
+    );
+    return results.join("\n");
+  } catch (error) {
+    throw new Error(
+      `Error fetching sections for page: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+}
 
 // Start the server
 async function runServer() {
