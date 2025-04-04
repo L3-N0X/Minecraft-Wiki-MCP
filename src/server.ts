@@ -13,10 +13,10 @@ import axios from "axios";
 const WIKIMEDIA_API_URL = "https://minecraft.wiki/api.php";
 
 // Define tools
-const SEARCH_WIKI_TOOL: Tool = {
-  name: "searchWiki",
+const SEARCH_WIKI_MINECRAFTWIKI_TOOL: Tool = {
+  name: "MinecraftWiki_searchWiki",
   description:
-    "Search the Minecraft Wiki for articles and information. For specific content like loot tables, try including keywords like 'Loot Table' or the specific entity/item the loot table is for (e.g., 'Zombie Loot Table').",
+    "Search the Minecraft Wiki for a specific structure, entity, item or block. Shorter search terms are generally more effective.",
   inputSchema: {
     type: "object",
     properties: {
@@ -29,25 +29,10 @@ const SEARCH_WIKI_TOOL: Tool = {
   },
 };
 
-const GET_PAGE_SUMMARY_TOOL: Tool = {
-  name: "getPageSummary",
-  description: "Get a summary of a specific Minecraft Wiki page.",
-  inputSchema: {
-    type: "object",
-    properties: {
-      title: {
-        type: "string",
-        description: "Title of the Minecraft Wiki page to retrieve summary for.",
-      },
-    },
-    required: ["title"],
-  },
-};
-
-const GET_PAGE_SECTION_TOOL: Tool = {
-  name: "getPageSection",
+const GET_PAGE_SECTION_MINECRAFTWIKI_TOOL: Tool = {
+  name: "MinecraftWiki_getPageSection",
   description:
-    "Get a specific section from a Minecraft Wiki page. The section index corresponds to the order of sections on the page, starting with 0 for the main content, 1 for the first section, 2 for the second section, etc. You can manually inspect the page to determine the correct section index. Note that the section content will have HTML tags removed.",
+    "Get a specific section from a Minecraft Wiki page. The section index corresponds to the order of sections on the page, starting with 0 for the main content, 1 for the first section, 2 for the second section, etc. You can manually inspect the page to determine the correct section index.",
   inputSchema: {
     type: "object",
     properties: {
@@ -57,15 +42,16 @@ const GET_PAGE_SECTION_TOOL: Tool = {
       },
       sectionIndex: {
         type: "number",
-        description: "Index of the section to retrieve (0 = main, 1 = first section, etc.)",
+        description:
+          "Index of the section to retrieve (0 = main, 1 = first section, 2 = second section, etc.)",
       },
     },
     required: ["title", "sectionIndex"],
   },
 };
 
-const LIST_CATEGORY_MEMBERS_TOOL: Tool = {
-  name: "listCategoryMembers",
+const LIST_CATEGORY_MEMBERS_MINECRAFTWIKI_TOOL: Tool = {
+  name: "MinecraftWiki_listCategoryMembers",
   description: "List all pages that are members of a specific category on the Minecraft Wiki.",
   inputSchema: {
     type: "object",
@@ -83,8 +69,8 @@ const LIST_CATEGORY_MEMBERS_TOOL: Tool = {
   },
 };
 
-const GET_PAGE_CONTENT_TOOL: Tool = {
-  name: "getPageContent",
+const GET_PAGE_CONTENT_MINECRAFTWIKI_TOOL: Tool = {
+  name: "MinecraftWiki_getPageContent",
   description: "Get the raw wikitext content of a specific Minecraft Wiki page.",
   inputSchema: {
     type: "object",
@@ -98,8 +84,8 @@ const GET_PAGE_CONTENT_TOOL: Tool = {
   },
 };
 
-const RESOLVE_REDIRECT_TOOL: Tool = {
-  name: "resolveRedirect",
+const RESOLVE_REDIRECT_MINECRAFTWIKI_TOOL: Tool = {
+  name: "MinecraftWiki_resolveRedirect",
   description: "Resolve a redirect and return the title of the target page.",
   inputSchema: {
     type: "object",
@@ -134,15 +120,6 @@ function isSearchWikiArgs(args: unknown): args is { query: string } {
     args !== null &&
     "query" in args &&
     typeof (args as { query: string }).query === "string"
-  );
-}
-
-function isGetPageSummaryArgs(args: unknown): args is { title: string } {
-  return (
-    typeof args === "object" &&
-    args !== null &&
-    "title" in args &&
-    typeof (args as { title: string }).title === "string"
   );
 }
 
@@ -185,7 +162,7 @@ function isResolveRedirectArgs(args: unknown): args is { title: string } {
   );
 }
 
-async function listCategoryMembers(category: string, limit: number = 10) {
+async function listCategoryMembersMinecraftWiki(category: string, limit: number = 10) {
   try {
     const response = await axios.get(WIKIMEDIA_API_URL, {
       params: {
@@ -207,7 +184,7 @@ async function listCategoryMembers(category: string, limit: number = 10) {
   }
 }
 
-async function getPageContent(title: string) {
+async function getPageContentMinecraftWiki(title: string) {
   try {
     const response = await axios.get(WIKIMEDIA_API_URL, {
       params: {
@@ -238,7 +215,7 @@ async function getPageContent(title: string) {
   }
 }
 
-async function resolveRedirect(title: string) {
+async function resolveRedirectMinecraftWiki(title: string) {
   try {
     const response = await axios.get(WIKIMEDIA_API_URL, {
       params: {
@@ -266,7 +243,7 @@ async function resolveRedirect(title: string) {
 }
 
 // Tool handlers
-async function searchWiki(query: string) {
+async function searchMinecraftWiki(query: string) {
   try {
     const response = await axios.get(WIKIMEDIA_API_URL, {
       params: {
@@ -293,42 +270,11 @@ async function searchWiki(query: string) {
   }
 }
 
-async function getPageSummary(title: string) {
+async function getPageSectionMinecraftWiki(title: string, sectionIndex: number) {
   try {
     const response = await axios.get(WIKIMEDIA_API_URL, {
       params: {
         action: "query",
-        format: "json",
-        prop: "revisions",
-        rvprop: "content",
-        titles: title,
-        origin: "*",
-      },
-    });
-
-    const pages = response.data.query.pages;
-    const page = Object.values(pages)[0] as {
-      revisions?: [{ content: string }];
-      missing?: boolean;
-    };
-
-    if (page.missing) {
-      throw new Error(`Page "${title}" not found.`);
-    }
-
-    return page.revisions?.[0].content || `No content found for "${title}"`;
-  } catch (error) {
-    throw new Error(
-      `Error fetching page content: ${error instanceof Error ? error.message : "Unknown error"}`
-    );
-  }
-}
-
-async function getPageSection(title: string, sectionIndex: number) {
-  try {
-    const response = await axios.get(WIKIMEDIA_API_URL, {
-      params: {
-        action: "parse",
         format: "json",
         page: title,
         sectionindex: sectionIndex,
@@ -336,14 +282,28 @@ async function getPageSection(title: string, sectionIndex: number) {
       },
     });
 
+    console.log("Response data:", response); // Debugging line
+
     if (response.data.error) {
+      console.error("API error:", response.data.error);
       throw new Error(
         `Error fetching section ${sectionIndex} of "${title}": ${response.data.error.info}`
       );
     }
 
+    if (!response.data.parse || !response.data.parse.text) {
+      console.error("Unexpected response structure:", response.data);
+      throw new Error(`Unexpected response structure for "${title}" section ${sectionIndex}`);
+    }
+
+    const sectionContent = response.data.parse.text["*"];
+    console.log("Section content before cleaning:", sectionContent);
+
     // Remove HTML tags from section content
-    return response.data.parse.text["*"].replace(/<[^>]*>/g, "");
+    const cleanedSectionContent = sectionContent.replace(/<[^>]*>/g, "");
+    console.log("Cleaned section content:", cleanedSectionContent);
+
+    return cleanedSectionContent;
   } catch (error) {
     throw new Error(
       `Error fetching page section: ${error instanceof Error ? error.message : "Unknown error"}`
@@ -354,12 +314,11 @@ async function getPageSection(title: string, sectionIndex: number) {
 // Register tool handlers
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
-    SEARCH_WIKI_TOOL,
-    GET_PAGE_SUMMARY_TOOL,
-    GET_PAGE_SECTION_TOOL,
-    LIST_CATEGORY_MEMBERS_TOOL,
-    GET_PAGE_CONTENT_TOOL,
-    RESOLVE_REDIRECT_TOOL,
+    SEARCH_WIKI_MINECRAFTWIKI_TOOL,
+    GET_PAGE_SECTION_MINECRAFTWIKI_TOOL,
+    LIST_CATEGORY_MEMBERS_MINECRAFTWIKI_TOOL,
+    GET_PAGE_CONTENT_MINECRAFTWIKI_TOOL,
+    RESOLVE_REDIRECT_MINECRAFTWIKI_TOOL,
   ],
 }));
 
@@ -372,72 +331,65 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     switch (name) {
-      case "searchWiki": {
+      case "MinecraftWiki_searchWiki": {
         if (!isSearchWikiArgs(args)) {
           throw new Error("Invalid arguments for searchWiki");
         }
         const { query } = args;
-        const results = await searchWiki(query);
+        const results = await searchMinecraftWiki(query);
+        console.log("Search results:", results);
         return {
           content: [{ type: "text", text: results }],
           isError: false,
         };
       }
 
-      case "getPageSummary": {
-        if (!isGetPageSummaryArgs(args)) {
-          throw new Error("Invalid arguments for getPageSummary");
-        }
-        const { title } = args;
-        const summary = await getPageSummary(title);
-        return {
-          content: [{ type: "text", text: summary }],
-          isError: false,
-        };
-      }
-
-      case "getPageSection": {
+      case "MinecraftWiki_getPageSection": {
         if (!isGetPageSectionArgs(args)) {
           throw new Error("Invalid arguments for getPageSection");
         }
         const { title, sectionIndex } = args;
-        const section = await getPageSection(title, sectionIndex);
+        const section = await getPageSectionMinecraftWiki(title, sectionIndex);
+        console.log("Section content:", section);
         return {
           content: [{ type: "text", text: section }],
           isError: false,
         };
       }
 
-      case "listCategoryMembers": {
+      case "MinecraftWiki_listCategoryMembers": {
         if (!isListCategoryMembersArgs(args)) {
           throw new Error("Invalid arguments for listCategoryMembers");
         }
         const { category, limit } = args;
-        const results = await listCategoryMembers(category, limit);
+        const results = await listCategoryMembersMinecraftWiki(category, limit);
+        console.log("Category members:", results);
         return {
           content: [{ type: "text", text: results }],
           isError: false,
         };
       }
 
-      case "getPageContent": {
+      case "MinecraftWiki_getPageContent": {
         if (!isGetPageContentArgs(args)) {
           throw new Error("Invalid arguments for getPageContent");
         }
         const { title } = args;
-        const content = await getPageContent(title);
+        const content = await getPageContentMinecraftWiki(title);
+        console.log("Page content:", content);
         return {
           content: [{ type: "text", text: content }],
           isError: false,
         };
       }
 
-      case "resolveRedirect": {
+      case "MinecraftWiki_resolveRedirect": {
         if (!isResolveRedirectArgs(args)) {
           throw new Error("Invalid arguments for resolveRedirect");
         }
         const { title } = args;
-        const resolvedTitle = await resolveRedirect(title);
+        const resolvedTitle = await resolveRedirectMinecraftWiki(title);
+        console.log("Resolved title:", resolvedTitle);
         return {
           content: [{ type: "text", text: resolvedTitle }],
           isError: false,
@@ -467,7 +419,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function runServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Minecraft Wiki MCP Server running on stdio");
 }
 
 runServer().catch((error) => {
