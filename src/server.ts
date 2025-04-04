@@ -22,7 +22,7 @@ const SEARCH_WIKI_TOOL: Tool = {
     properties: {
       query: {
         type: "string",
-        description: "Search term to find on the Minecraft Wiki",
+        description: "Search term to find on the Minecraft Wiki.",
       },
     },
     required: ["query"],
@@ -31,13 +31,13 @@ const SEARCH_WIKI_TOOL: Tool = {
 
 const GET_PAGE_SUMMARY_TOOL: Tool = {
   name: "getPageSummary",
-  description: "Get the full content of a specific Minecraft Wiki page.",
+  description: "Get a summary of a specific Minecraft Wiki page.",
   inputSchema: {
     type: "object",
     properties: {
       title: {
         type: "string",
-        description: "Title of the Minecraft Wiki page to retrieve content for.",
+        description: "Title of the Minecraft Wiki page to retrieve summary for.",
       },
     },
     required: ["title"],
@@ -47,7 +47,7 @@ const GET_PAGE_SUMMARY_TOOL: Tool = {
 const GET_PAGE_SECTION_TOOL: Tool = {
   name: "getPageSection",
   description:
-    "Get a specific section from a Minecraft Wiki page. The section index corresponds to the order of sections on the page, starting with 0 for the main content, 1 for the first section, 2 for the second section, etc. You can manually inspect the page to determine the correct section index.",
+    "Get a specific section from a Minecraft Wiki page. The section index corresponds to the order of sections on the page, starting with 0 for the main content, 1 for the first section, 2 for the second section, etc. You can manually inspect the page to determine the correct section index. Note that the section content will have HTML tags removed.",
   inputSchema: {
     type: "object",
     properties: {
@@ -77,7 +77,6 @@ const LIST_CATEGORY_MEMBERS_TOOL: Tool = {
       limit: {
         type: "number",
         description: "The maximum number of pages to return (default: 10, max: 500).",
-        default: 10,
       },
     },
     required: ["category"],
@@ -92,7 +91,7 @@ const GET_PAGE_CONTENT_TOOL: Tool = {
     properties: {
       title: {
         type: "string",
-        description: "Title of the Minecraft Wiki page to retrieve content for.",
+        description: "Title of the Minecraft Wiki page to retrieve the raw wikitext content for.",
       },
     },
     required: ["title"],
@@ -107,7 +106,7 @@ const RESOLVE_REDIRECT_TOOL: Tool = {
     properties: {
       title: {
         type: "string",
-        description: "Title of the page to resolve redirects for.",
+        description: "Title of the page to resolve the redirect for.",
       },
     },
     required: ["title"],
