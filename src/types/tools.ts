@@ -103,6 +103,7 @@ export const LIST_ALL_CATEGORIES_MINECRAFTWIKI_TOOL: Tool = {
         description: "The maximum number of categories to return (default: 10, max: 500).",
       },
     },
+    required: [],
   },
 };
 

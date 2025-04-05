@@ -60,141 +60,108 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   ],
 }));
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  try {
-    const { name, arguments: args } = request.params;
+server.setRequestHandler(
+  CallToolRequestSchema,
+  async (request): Promise<{ content: { type: string; text: string }[]; isError?: boolean }> => {
+    try {
+      const { name, arguments: args } = request.params;
 
-    if (!args) {
-      throw new Error("No arguments provided");
+      if (!args) {
+        throw new Error("No arguments provided");
+      }
+
+      switch (name) {
+        case SEARCH_WIKI_MINECRAFTWIKI_TOOL.name: {
+          if (!isSearchWikiArgs(args)) {
+            throw new Error("Invalid arguments for searchWiki");
+          }
+          const results = await wikiService.searchWiki(args.query);
+          return { content: [{ type: "text", text: results }] };
+        }
+
+        case GET_PAGE_SECTION_MINECRAFTWIKI_TOOL.name: {
+          if (!isGetPageSectionArgs(args)) {
+            throw new Error("Invalid arguments for getPageSection");
+          }
+          const section = await wikiService.getPageSection(args.title, args.sectionIndex);
+          return { content: [{ type: "text", text: section }] };
+        }
+
+        case LIST_CATEGORY_MEMBERS_MINECRAFTWIKI_TOOL.name: {
+          if (!isListCategoryMembersArgs(args)) {
+            throw new Error("Invalid arguments for listCategoryMembers");
+          }
+          const results = await wikiService.listCategoryMembers(args.category, args.limit);
+          return { content: [{ type: "text", text: results }] };
+        }
+
+        case GET_PAGE_CONTENT_MINECRAFTWIKI_TOOL.name: {
+          if (!isGetPageContentArgs(args)) {
+            throw new Error("Invalid arguments for getPageContent");
+          }
+          const content = await wikiService.getPageContent(args.title);
+          return { content: [{ type: "text", text: content }] };
+        }
+
+        case RESOLVE_REDIRECT_MINECRAFTWIKI_TOOL.name: {
+          if (!isResolveRedirectArgs(args)) {
+            throw new Error("Invalid arguments for resolveRedirect");
+          }
+          const resolvedTitle = await wikiService.resolveRedirect(args.title);
+          return { content: [{ type: "text", text: resolvedTitle }] };
+        }
+
+        case LIST_ALL_CATEGORIES_MINECRAFTWIKI_TOOL.name: {
+          if (!isListAllCategoriesArgs(args)) {
+            throw new Error("Invalid arguments for listAllCategories");
+          }
+          const results = await wikiService.listAllCategories(args.prefix, args.limit);
+          return { content: [{ type: "text", text: results }] };
+        }
+
+        case GET_CATEGORIES_FOR_PAGE_MINECRAFTWIKI_TOOL.name: {
+          if (!isGetCategoriesForPageArgs(args)) {
+            throw new Error("Invalid arguments for getCategoriesForPage");
+          }
+          const results = await wikiService.getCategoriesForPage(args.title);
+          return { content: [{ type: "text", text: results }] };
+        }
+
+        case GET_SECTIONS_IN_PAGE_MINECRAFTWIKI_TOOL.name: {
+          if (!isGetSectionsInPageArgs(args)) {
+            throw new Error("Invalid arguments for getSectionsInPage");
+          }
+          const results = await wikiService.getSectionsInPage(args.title);
+          return { content: [{ type: "text", text: results }] };
+        }
+
+        case GET_PAGE_SUMMARY_MINECRAFTWIKI_TOOL.name: {
+          if (!isGetPageSummaryArgs(args)) {
+            throw new Error("Invalid arguments for getPageSummary");
+          }
+          const results = await wikiService.getPageSummary(args.title);
+          return { content: [{ type: "text", text: results }] };
+        }
+
+        default:
+          return {
+            content: [{ type: "text", text: `Unknown tool: ${name}` }],
+            isError: true,
+          };
+      }
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        ],
+        isError: true,
+      };
     }
-
-    switch (name) {
-      case SEARCH_WIKI_MINECRAFTWIKI_TOOL.name: {
-        if (!isSearchWikiArgs(args)) {
-          throw new Error("Invalid arguments for searchWiki");
-        }
-        const results = await wikiService.searchWiki(args.query);
-        console.log("Search results:", results);
-        return {
-          content: [{ type: "text", text: results }],
-          isError: false,
-        };
-      }
-
-      case GET_PAGE_SECTION_MINECRAFTWIKI_TOOL.name: {
-        if (!isGetPageSectionArgs(args)) {
-          throw new Error("Invalid arguments for getPageSection");
-        }
-        const section = await wikiService.getPageSection(args.title, args.sectionIndex);
-        console.log("Section content:", section);
-        return {
-          content: [{ type: "text", text: section }],
-          isError: false,
-        };
-      }
-
-      case LIST_CATEGORY_MEMBERS_MINECRAFTWIKI_TOOL.name: {
-        if (!isListCategoryMembersArgs(args)) {
-          throw new Error("Invalid arguments for listCategoryMembers");
-        }
-        const results = await wikiService.listCategoryMembers(args.category, args.limit);
-        console.log("Category members:", results);
-        return {
-          content: [{ type: "text", text: results }],
-          isError: false,
-        };
-      }
-
-      case GET_PAGE_CONTENT_MINECRAFTWIKI_TOOL.name: {
-        if (!isGetPageContentArgs(args)) {
-          throw new Error("Invalid arguments for getPageContent");
-        }
-        const content = await wikiService.getPageContent(args.title);
-        console.log("Page content:", content);
-        return {
-          content: [{ type: "text", text: content }],
-          isError: false,
-        };
-      }
-
-      case RESOLVE_REDIRECT_MINECRAFTWIKI_TOOL.name: {
-        if (!isResolveRedirectArgs(args)) {
-          throw new Error("Invalid arguments for resolveRedirect");
-        }
-        const resolvedTitle = await wikiService.resolveRedirect(args.title);
-        console.log("Resolved title:", resolvedTitle);
-        return {
-          content: [{ type: "text", text: resolvedTitle }],
-          isError: false,
-        };
-      }
-
-      case LIST_ALL_CATEGORIES_MINECRAFTWIKI_TOOL.name: {
-        if (!isListAllCategoriesArgs(args)) {
-          throw new Error("Invalid arguments for listAllCategories");
-        }
-        const results = await wikiService.listAllCategories(args.prefix, args.limit);
-        console.log("All categories:", results);
-        return {
-          content: [{ type: "text", text: results }],
-          isError: false,
-        };
-      }
-
-      case GET_CATEGORIES_FOR_PAGE_MINECRAFTWIKI_TOOL.name: {
-        if (!isGetCategoriesForPageArgs(args)) {
-          throw new Error("Invalid arguments for getCategoriesForPage");
-        }
-        const results = await wikiService.getCategoriesForPage(args.title);
-        console.log("Categories for page:", results);
-        return {
-          content: [{ type: "text", text: results }],
-          isError: false,
-        };
-      }
-
-      case GET_SECTIONS_IN_PAGE_MINECRAFTWIKI_TOOL.name: {
-        if (!isGetSectionsInPageArgs(args)) {
-          throw new Error("Invalid arguments for getSectionsInPage");
-        }
-        const results = await wikiService.getSectionsInPage(args.title);
-        console.log("Sections in page:", results);
-        return {
-          content: [{ type: "text", text: results }],
-          isError: false,
-        };
-      }
-
-      case GET_PAGE_SUMMARY_MINECRAFTWIKI_TOOL.name: {
-        if (!isGetPageSummaryArgs(args)) {
-          throw new Error("Invalid arguments for getPageSummary");
-        }
-        const results = await wikiService.getPageSummary(args.title);
-        console.log("Page summary:", results);
-        return {
-          content: [{ type: "text", text: results }],
-          isError: false,
-        };
-      }
-
-      default:
-        return {
-          content: [{ type: "text", text: `Unknown tool: ${name}` }],
-          isError: true,
-        };
-    }
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Error: ${error instanceof Error ? error.message : String(error)}`,
-        },
-      ],
-      isError: true,
-    };
   }
-});
+);
 
 // Start the server
 async function runServer() {
@@ -202,7 +169,6 @@ async function runServer() {
   await server.connect(transport);
 }
 
-runServer().catch((error) => {
-  console.error("Fatal error running server:", error);
+runServer().catch(() => {
   process.exit(1);
 });

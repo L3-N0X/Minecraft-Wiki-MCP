@@ -14,7 +14,7 @@ class ApiService {
     });
   }
 
-  async get<T>(endpoint: string, params: Record<string, any>): Promise<T> {
+  async get<T, P extends Record<string, unknown>>(endpoint: string, params: P): Promise<T> {
     try {
       const response = await this.axiosInstance.get(endpoint, {
         params: {
