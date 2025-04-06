@@ -21,6 +21,9 @@ export function formatMCPText(text: string): string {
     text
       // Replace any non-printable ASCII and extended characters with spaces
       .replace(/[^\x20-\x7E]/g, " ")
+      //  Replace any special characters that might cause issues in MCP
+
+      .replace(/[@^*"{}|<>]/g, "")
       // Remove any extra spaces created by replacements
       .replace(/\s+/g, " ")
       // Escape quotes and backslashes
