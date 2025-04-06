@@ -2,6 +2,9 @@
 
 A MCP Server for browsing the official Minecraft Wiki!
 
+> [!WARNING]
+> This MCP is still in development and while working most of the time, there might still be smaller issues and bugs left!
+
 ## Features
 
 - **Wiki Search**: Find information about Minecraft structures, entities, items, and blocks
