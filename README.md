@@ -15,38 +15,14 @@ A MCP Server for browsing the official Minecraft Wiki!
 
 ## Installation
 
-You can install and use this MCP server in several ways:
-
-### Using NPX
-
-```bash
-npx @modelcontextprotocol/minecraft-wiki
-```
-
-### Using Claude Desktop
-
-Add this to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "minecraft-wiki": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/minecraft-wiki"
-      ]
-    }
-  }
-}
-```
+Currently, only local installation is supported, other might follow!
 
 ### Manual Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/username/minecraft-wiki-mcp.git
-cd minecraft-wiki-mcp
+git clone https://github.com/L3-N0X/Minecraft-Wiki-MCP.git
+cd Minecraft-Wiki-MCP
 
 # Install dependencies
 npm install
@@ -63,7 +39,7 @@ Then, you can use the server with this configuration in your `claude_desktop_con
     "minecraft-wiki": {
       "command": "node",
       "args": [
-        "dist/server.js", 
+        "/path/to/your/dist/server.js", 
         "--api-url",
         "https://minecraft.wiki/api.php"
       ]
@@ -74,16 +50,16 @@ Then, you can use the server with this configuration in your `claude_desktop_con
 
 ## Configuration
 
+Make sure to update the path to the server.js file!
 By default, this server connects to <https://minecraft.wiki/api.php> (English version). You can use a different wiki API URL by using the `api-url` option to access different language versions:
 
 ```json
 {
   "mcpServers": {
     "minecraft-wiki": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@L3-N0X/minecraft-wiki-mcp",
+      "command": "node",
+       "args": [
+        "/path/to/your/dist/server.js", 
         "--api-url",
         "https://de.minecraft.wiki/api.php" // German version
       ]
