@@ -1,4 +1,5 @@
 # Minecraft Wiki MCP
+[![smithery badge](https://smithery.ai/badge/@L3-N0X/Minecraft-Wiki-MCP)](https://smithery.ai/server/@L3-N0X/Minecraft-Wiki-MCP)
 
 A MCP Server for browsing the official Minecraft Wiki!
 
@@ -16,6 +17,14 @@ A MCP Server for browsing the official Minecraft Wiki!
 ## Installation
 
 Currently, only local installation is supported, other might follow!
+
+### Installing via Smithery
+
+To install Minecraft Wiki Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@L3-N0X/Minecraft-Wiki-MCP):
+
+```bash
+npx -y @smithery/cli install @L3-N0X/Minecraft-Wiki-MCP --client claude
+```
 
 ### Manual Installation
 
