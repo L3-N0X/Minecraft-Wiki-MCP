@@ -1,4 +1,3 @@
-
 # Minecraft Wiki MCP
 [![smithery badge](https://smithery.ai/badge/@L3-N0X/Minecraft-Wiki-MCP)](https://smithery.ai/server/@L3-N0X/Minecraft-Wiki-MCP)
 [![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/f80cbb34-35d6-4652-a302-2413ffe60cb4)
@@ -7,6 +6,10 @@ A MCP Server for browsing the official Minecraft Wiki!
 
 > [!WARNING]
 > This MCP is still in development and while working most of the time, there might still be smaller issues and bugs left!
+
+<a href="https://glama.ai/mcp/servers/@L3-N0X/Minecraft-Wiki-MCP">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@L3-N0X/Minecraft-Wiki-MCP/badge" alt="Minecraft Wiki MCP server" />
+</a>
 
 ## Features
 
