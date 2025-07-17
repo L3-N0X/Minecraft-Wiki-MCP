@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/l3-n0x-minecraft-wiki-mcp-badge.png)](https://mseep.ai/app/l3-n0x-minecraft-wiki-mcp)
+
 # Minecraft Wiki MCP
 
 A MCP Server for browsing the official Minecraft Wiki!
