@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/l3-n0x-minecraft-wiki-mcp-badge.png)](https://mseep.ai/app/l3-n0x-minecraft-wiki-mcp)
+
 # Minecraft Wiki MCP
 [![smithery badge](https://smithery.ai/badge/@L3-N0X/Minecraft-Wiki-MCP)](https://smithery.ai/server/@L3-N0X/Minecraft-Wiki-MCP)
 [![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/f80cbb34-35d6-4652-a302-2413ffe60cb4)
