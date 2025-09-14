@@ -152,3 +152,18 @@ export const GET_PAGE_SUMMARY_MINECRAFTWIKI_TOOL: Tool = {
     required: ["title"],
   },
 };
+
+export const GET_CRAFTING_RECIPE_MINECRAFTWIKI_TOOL: Tool = {
+  name: "MinecraftWiki_getCraftingRecipe",
+  description: "Extract structured crafting recipe information from a Minecraft Wiki page. Returns ingredients with quantities, recipe type, and crafting pattern details.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      title: {
+        type: "string",
+        description: "Title of the Minecraft Wiki page to extract crafting recipe from (e.g., 'Conduit', 'End Crystal', 'Beacon')",
+      },
+    },
+    required: ["title"],
+  },
+};

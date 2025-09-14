@@ -14,6 +14,7 @@ import {
   GET_CATEGORIES_FOR_PAGE_MINECRAFTWIKI_TOOL,
   GET_SECTIONS_IN_PAGE_MINECRAFTWIKI_TOOL,
   GET_PAGE_SUMMARY_MINECRAFTWIKI_TOOL,
+  GET_CRAFTING_RECIPE_MINECRAFTWIKI_TOOL,
 } from "./types/tools.js";
 
 import {
@@ -26,6 +27,7 @@ import {
   isGetCategoriesForPageArgs,
   isGetSectionsInPageArgs,
   isGetPageSummaryArgs,
+  isGetCraftingRecipeArgs,
 } from "./types/guards.js";
 
 import { wikiService } from "./services/wiki.service.js";
@@ -52,6 +54,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     GET_PAGE_SUMMARY_MINECRAFTWIKI_TOOL,
     GET_SECTIONS_IN_PAGE_MINECRAFTWIKI_TOOL,
     GET_PAGE_SECTION_MINECRAFTWIKI_TOOL,
+    GET_CRAFTING_RECIPE_MINECRAFTWIKI_TOOL,
     GET_PAGE_CONTENT_MINECRAFTWIKI_TOOL,
     RESOLVE_REDIRECT_MINECRAFTWIKI_TOOL,
     LIST_CATEGORY_MEMBERS_MINECRAFTWIKI_TOOL,
@@ -140,6 +143,14 @@ server.setRequestHandler(
             throw new Error("Invalid arguments for getPageSummary");
           }
           const results = await wikiService.getPageSummary(args.title);
+          return { content: [{ type: "text", text: results }] };
+        }
+
+        case GET_CRAFTING_RECIPE_MINECRAFTWIKI_TOOL.name: {
+          if (!isGetCraftingRecipeArgs(args)) {
+            throw new Error("Invalid arguments for getCraftingRecipe");
+          }
+          const results = await wikiService.getCraftingRecipe(args.title);
           return { content: [{ type: "text", text: results }] };
         }
 

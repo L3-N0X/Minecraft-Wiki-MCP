@@ -88,3 +88,12 @@ export function isGetPageSummaryArgs(args: unknown): args is { title: string } {
     typeof (args as { title: string }).title === "string"
   );
 }
+
+export function isGetCraftingRecipeArgs(args: unknown): args is { title: string } {
+  return (
+    typeof args === "object" &&
+    args !== null &&
+    "title" in args &&
+    typeof (args as { title: string }).title === "string"
+  );
+}

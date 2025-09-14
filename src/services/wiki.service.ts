@@ -1,5 +1,6 @@
 import { apiService } from "./api.service.js";
 import { sanitizeWikiContent, formatMCPText, createJsonSearchResult } from "../utils/utils.js";
+import { extractCraftingRecipe, sanitizeWikiContentWithRecipes, RecipeExtractionResult } from "../utils/recipe-extractor.js";
 
 interface WikiResponse {
   query?: {
@@ -67,7 +68,21 @@ class WikiService {
       throw new Error(`No content found for section ${sectionIndex} of "${title}"`);
     }
 
-    const content = sanitizeWikiContent(response.parse.text["*"]);
+    const rawContent = response.parse.text["*"];
+    const content = sanitizeWikiContent(rawContent);
+    
+    // Check if this section contains crafting recipe information
+    const recipeResult = extractCraftingRecipe(rawContent, title, sectionIndex);
+    
+    if (recipeResult.hasRecipe) {
+      return JSON.stringify({
+        title: formatMCPText(title),
+        sectionIndex: sectionIndex,
+        content: content,
+        crafting_recipe: recipeResult.crafting_recipe,
+      });
+    }
+
     return JSON.stringify({
       title: formatMCPText(title),
       sectionIndex: sectionIndex,
@@ -241,6 +256,85 @@ class WikiService {
         error: error instanceof Error ? error.message : "Unknown error",
         summary: "",
         sections: [],
+      });
+    }
+  }
+
+  async getCraftingRecipe(title: string): Promise<string> {
+    try {
+      // First get all sections to find crafting-related ones
+      const sectionsResponse = await this.getSectionsInPage(title);
+      const sectionsData = JSON.parse(sectionsResponse);
+      
+      // Look for crafting-related sections
+      const craftingSections = sectionsData.sections.filter((section: any) => 
+        /craft|recipe|ingredients/i.test(section.title)
+      );
+
+      let bestRecipe = null;
+      let bestSection = null;
+
+      // Try to extract recipes from crafting sections
+      for (const section of craftingSections) {
+        try {
+          const response = await apiService.get<WikiResponse, Record<string, unknown>>("", {
+            action: "parse",
+            page: title,
+            section: section.index,
+          });
+
+          if (response.parse?.text?.["*"]) {
+            const rawContent = response.parse.text["*"];
+            const recipeResult = extractCraftingRecipe(rawContent, title, section.index);
+            
+            if (recipeResult.hasRecipe && recipeResult.crafting_recipe) {
+              bestRecipe = recipeResult.crafting_recipe;
+              bestSection = section;
+              break; // Use the first valid recipe found
+            }
+          }
+        } catch (error) {
+          // Continue searching other sections if this one fails
+          continue;
+        }
+      }
+
+      // If no crafting section found, try the full page content
+      if (!bestRecipe) {
+        try {
+          const contentResponse = await this.getPageContent(title);
+          const contentData = JSON.parse(contentResponse);
+          const recipeResult = extractCraftingRecipe(contentData.content, title);
+          
+          if (recipeResult.hasRecipe) {
+            bestRecipe = recipeResult.crafting_recipe;
+          }
+        } catch (error) {
+          // Ignore error and return no recipe found
+        }
+      }
+
+      if (bestRecipe) {
+        return JSON.stringify({
+          title: formatMCPText(title),
+          crafting_recipe: bestRecipe,
+          source_section: bestSection ? {
+            index: bestSection.index,
+            title: formatMCPText(bestSection.title)
+          } : null,
+        });
+      } else {
+        return JSON.stringify({
+          title: formatMCPText(title),
+          crafting_recipe: null,
+          message: "No crafting recipe found for this item",
+        });
+      }
+    } catch (error) {
+      return JSON.stringify({
+        title: formatMCPText(title),
+        error: error instanceof Error ? error.message : "Unknown error",
+        crafting_recipe: null,
       });
     }
   }
