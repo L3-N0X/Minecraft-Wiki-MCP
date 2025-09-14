@@ -1,6 +1,6 @@
 import { apiService } from "./api.service.js";
 import { sanitizeWikiContent, formatMCPText, createJsonSearchResult } from "../utils/utils.js";
-import { extractCraftingRecipe, sanitizeWikiContentWithRecipes, RecipeExtractionResult } from "../utils/recipe-extractor.js";
+import { extractCraftingRecipe } from "../utils/recipe-extractor.js";
 
 interface WikiResponse {
   query?: {
@@ -267,7 +267,7 @@ class WikiService {
       const sectionsData = JSON.parse(sectionsResponse);
       
       // Look for crafting-related sections
-      const craftingSections = sectionsData.sections.filter((section: any) => 
+      const craftingSections = sectionsData.sections.filter((section: { title: string }) => 
         /craft|recipe|ingredients/i.test(section.title)
       );
 
@@ -293,7 +293,7 @@ class WikiService {
               break; // Use the first valid recipe found
             }
           }
-        } catch (error) {
+        } catch {
           // Continue searching other sections if this one fails
           continue;
         }
@@ -309,7 +309,7 @@ class WikiService {
           if (recipeResult.hasRecipe) {
             bestRecipe = recipeResult.crafting_recipe;
           }
-        } catch (error) {
+        } catch {
           // Ignore error and return no recipe found
         }
       }

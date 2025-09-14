@@ -49,7 +49,9 @@ export function extractCraftingRecipe(content: string, title: string, sectionInd
     }
   } catch (error) {
     // If parsing fails, continue without recipe data
-    console.error(`Failed to parse recipe for ${title}:`, error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Failed to parse recipe for ${title}:`, error);
+    }
   }
 
   return result;
