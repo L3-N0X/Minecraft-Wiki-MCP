@@ -5,6 +5,9 @@ An MCP Server for browsing the official Minecraft Wiki!
 > [!WARNING]
 > This is v2 — a complete Python rewrite. If you're upgrading from v1 (TypeScript), see the [migration notes](#migrating-from-v1) below.
 
+> [!TIP]
+> **Public Hosted Instance**: You can connect to the public hosted instance of this server directly at `https://minecraft-wiki-mcp.goett.top/mcp` without installing or running anything locally! See [Streamable HTTP Transport](#streamable-http-transport) below for instructions.
+
 ## Features
 
 - **Wiki Search** — Find information about Minecraft structures, entities, items, and blocks
@@ -101,7 +104,13 @@ For remote or multi-client access, you can use **Streamable HTTP** transport:
 uv run minecraft-wiki-mcp --transport streamable-http
 ```
 
-Then connect clients to `http://127.0.0.1:8000/mcp`. For example, in Claude Code:
+Then connect clients to the HTTP endpoint. For example, to connect to the public hosted instance using Claude Code:
+
+```bash
+claude mcp add --transport http minecraft-wiki https://minecraft-wiki-mcp.goett.top/mcp
+```
+
+Or for a local server:
 
 ```bash
 claude mcp add --transport http minecraft-wiki http://localhost:8000/mcp
