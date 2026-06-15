@@ -188,6 +188,10 @@ uv run mcp dev src/minecraft_wiki_mcp/server.py
 uv run python -m py_compile src/minecraft_wiki_mcp/server.py
 ```
 
+## Acknowledgements
+
+A special thank you to [stone-brick](https://github.com/stone-brick) for developing the fantastic [minecraft-wiki-MDifier](https://github.com/stone-brick/minecraft-wiki-MDifier) library! This library converts complex Minecraft wikitext into clean, easy-to-read Markdown, which not only improves the parsing results of the MCP server but also significantly saves token usage for LLMs. Thank you for the help and for building this great library!
+
 ## Migrating from v1
 
 v2 is a complete rewrite from TypeScript to Python. Key changes:
