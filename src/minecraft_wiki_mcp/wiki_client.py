@@ -104,11 +104,16 @@ class WikiClient:
 
     # -- helpers -------------------------------------------------------------
 
-    async def _request(self, params: dict[str, Any]) -> dict[str, Any]:
+    async def _request(
+        self, params: dict[str, Any], method: str = "GET"
+    ) -> dict[str, Any]:
         """Execute a MediaWiki API request and return the JSON body."""
         params = {**params, "format": "json", "formatversion": "2"}
         try:
-            resp = await self._client.get(self.api_url, params=params)
+            if method.upper() == "POST":
+                resp = await self._client.post(self.api_url, data=params)
+            else:
+                resp = await self._client.get(self.api_url, params=params)
             resp.raise_for_status()
             data: dict[str, Any] = resp.json()
         except httpx.HTTPStatusError as exc:
@@ -125,6 +130,22 @@ class WikiClient:
             raise WikiClientError(f"Wiki API error: {info}")
 
         return data
+
+    async def expand_templates(self, text: str, title: str) -> str:
+        """Expand templates, parser functions, and variables in wikitext.
+
+        Uses ``action=expandtemplates``.
+        """
+        data = await self._request(
+            {
+                "action": "expandtemplates",
+                "title": title,
+                "text": text,
+                "prop": "wikitext",
+            },
+            method="POST",
+        )
+        return data.get("expandtemplates", {}).get("wikitext", "")
 
     # -- public API ----------------------------------------------------------
 
@@ -164,6 +185,8 @@ class WikiClient:
         parse = lead_data.get("parse", {})
         resolved_title = parse.get("title", title)
         lead_wikitext = parse.get("wikitext", "")
+        if lead_wikitext:
+            lead_wikitext = await self.expand_templates(lead_wikitext, resolved_title)
 
         # The sections from section=0 only gives us the lead section metadata.
         # We need a separate call to get all sections.
@@ -192,6 +215,8 @@ class WikiClient:
         parse = data.get("parse", {})
         resolved_title = parse.get("title", title)
         wikitext = parse.get("wikitext", "")
+        if wikitext:
+            wikitext = await self.expand_templates(wikitext, resolved_title)
 
         sections = [
             SectionInfo(
@@ -232,6 +257,8 @@ class WikiClient:
         parse = data.get("parse", {})
         resolved_title = parse.get("title", title)
         wikitext = parse.get("wikitext", "")
+        if wikitext:
+            wikitext = await self.expand_templates(wikitext, resolved_title)
 
         return SectionContent(
             title=resolved_title,
