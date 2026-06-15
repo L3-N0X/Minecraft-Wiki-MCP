@@ -43,4 +43,11 @@ services:
       # Server bind settings (defaults are fine for Docker)
       # - MINECRAFT_WIKI_HOST=0.0.0.0
       # - MINECRAFT_WIKI_PORT=8000
+
+      # DNS rebinding / host security.
+      # By default, security is disabled when binding to 0.0.0.0 (in Docker/VPS).
+      # If exposing to the internet and you want host/origin validation:
+      # - MINECRAFT_WIKI_ENABLE_SECURITY=true
+      # - MINECRAFT_WIKI_ALLOWED_HOSTS=your-domain.com:*,your-vps-ip:*
+      # - MINECRAFT_WIKI_ALLOWED_ORIGINS=https://your-domain.com:*
     restart: unless-stopped

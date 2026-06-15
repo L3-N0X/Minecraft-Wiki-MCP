@@ -383,6 +383,43 @@ def main() -> None:
         mcp.settings.stateless_http = True
         mcp.settings.json_response = True
 
+        # Configure transport security (DNS rebinding protection)
+        from mcp.server.transport_security import TransportSecuritySettings
+
+        # Determine if security should be enabled
+        enable_sec_env = os.environ.get("MINECRAFT_WIKI_ENABLE_SECURITY")
+        if enable_sec_env is not None:
+            enable_security = enable_sec_env.lower() in ("true", "1", "yes")
+        else:
+            # By default, only enable if host is localhost/loopback
+            enable_security = HOST in ("127.0.0.1", "localhost", "::1")
+
+        allowed_hosts_env = os.environ.get("MINECRAFT_WIKI_ALLOWED_HOSTS")
+        if allowed_hosts_env:
+            allowed_hosts = [h.strip() for h in allowed_hosts_env.split(",") if h.strip()]
+        else:
+            # Default allowed hosts
+            allowed_hosts = [f"{HOST}:*", "127.0.0.1:*", "localhost:*", "[::1]:*"]
+
+        allowed_origins_env = os.environ.get("MINECRAFT_WIKI_ALLOWED_ORIGINS")
+        if allowed_origins_env:
+            allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+        else:
+            # Default allowed origins
+            allowed_origins = [
+                f"http://{HOST}:*",
+                f"https://{HOST}:*",
+                "http://127.0.0.1:*",
+                "http://localhost:*",
+                "http://[::1]:*",
+            ]
+
+        mcp.settings.transport_security = TransportSecuritySettings(
+            enable_dns_rebinding_protection=enable_security,
+            allowed_hosts=allowed_hosts,
+            allowed_origins=allowed_origins,
+        )
+
     mcp.run(transport=args.transport)
 
 
