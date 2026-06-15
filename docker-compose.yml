@@ -1,0 +1,46 @@
+# Minecraft Wiki MCP Server — Docker Compose
+#
+# Quick start:
+#   docker compose up -d
+#
+# The MCP server will be available at:
+#   http://localhost:8000/mcp
+#
+# Connect from Claude Code:
+#   claude mcp add --transport http minecraft-wiki http://localhost:8000/mcp
+#
+# NOTE: For production deployment with TLS and a custom domain, place a
+# reverse proxy (e.g. nginx, Caddy, Traefik) in front of this service.
+# Example with Caddy (add to this compose file):
+#
+#   caddy:
+#     image: caddy:2-alpine
+#     ports:
+#       - "443:443"
+#       - "80:80"
+#     volumes:
+#       - ./Caddyfile:/etc/caddy/Caddyfile
+#       - caddy_data:/data
+#     depends_on:
+#       - minecraft-wiki-mcp
+#
+# With a Caddyfile like:
+#   your-domain.com {
+#       reverse_proxy minecraft-wiki-mcp:8000
+#   }
+
+services:
+  minecraft-wiki-mcp:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # MediaWiki API endpoint — change for other languages
+      # German: https://de.minecraft.wiki/api.php
+      # Japanese: https://ja.minecraft.wiki/api.php
+      - MINECRAFT_WIKI_API_URL=https://minecraft.wiki/api.php
+
+      # Server bind settings (defaults are fine for Docker)
+      # - MINECRAFT_WIKI_HOST=0.0.0.0
+      # - MINECRAFT_WIKI_PORT=8000
+    restart: unless-stopped
