@@ -125,27 +125,8 @@ The public hosted URL `https://minecraft-wiki-mcp.goett.top/mcp` can be easily a
   claude mcp add --transport http minecraft-wiki https://minecraft-wiki-mcp.goett.top/mcp
   ```
 
-* **Claude Desktop**: Add this to your `claude_desktop_config.json`:
-  ```json
-  {
-    "mcpServers": {
-      "minecraft-wiki": {
-        "command": "curl",
-        "args": [
-          "-s",
-          "-X",
-          "POST",
-          "https://minecraft-wiki-mcp.goett.top/mcp",
-          "-H",
-          "Content-Type: application/json"
-        ]
-      }
-    }
-  }
-  ```
-
-* **Claude Web (Claude.ai) & Perplexity Website**: 
-  1. Open your settings page and go to the MCP servers/integrations section.
+* **Claude (Web & Desktop) & Perplexity**:
+  1. Open your settings/customization page (e.g., Customize -> Connectors in Claude).
   2. Select the option to add a remote server using the **HTTP/SSE** transport.
   3. Enter `https://minecraft-wiki-mcp.goett.top/mcp` as the server URL.
 
