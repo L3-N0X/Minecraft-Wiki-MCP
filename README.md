@@ -1,37 +1,30 @@
 # Minecraft Wiki MCP
-[![smithery badge](https://smithery.ai/badge/@L3-N0X/Minecraft-Wiki-MCP)](https://smithery.ai/server/@L3-N0X/Minecraft-Wiki-MCP)
-[![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/f80cbb34-35d6-4652-a302-2413ffe60cb4)
 
-A MCP Server for browsing the official Minecraft Wiki!
+[![smithery badge](https://smithery.ai/badge/@L3-N0X/Minecraft-Wiki-MCP)](https://smithery.ai/server/@L3-N0X/Minecraft-Wiki-MCP)
+
+An MCP Server for browsing the official Minecraft Wiki!
 
 > [!WARNING]
-> This MCP is still in development and while working most of the time, there might still be smaller issues and bugs left!
-
-<a href="https://glama.ai/mcp/servers/@L3-N0X/Minecraft-Wiki-MCP">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/@L3-N0X/Minecraft-Wiki-MCP/badge" alt="Minecraft Wiki MCP server" />
-</a>
+> This is v2 — a complete Python rewrite. If you're upgrading from v1 (TypeScript), see the [migration notes](#migrating-from-v1) below.
 
 ## Features
 
-- **Wiki Search**: Find information about Minecraft structures, entities, items, and blocks
-- **Page Navigation**: Get summaries and detailed content from wiki pages
-- **Section Access**: Target specific sections within wiki pages
-- **Category Browsing**: Explore wiki categories and their member pages
-- **Multi-Language Support**: Connect to different language versions of the Minecraft Wiki
+- **Wiki Search** — Find information about Minecraft structures, entities, items, and blocks
+- **Page Summaries** — Get a page's intro plus a table of contents to navigate further
+- **Section Access** — Read specific sections as raw wikitext
+- **Full Page Content** — Retrieve the entire page when you need everything
+- **Category Browsing** — Explore wiki categories and their member pages
+- **Redirect Resolution** — Follow redirects to find the canonical page
+- **Multi-Language Support** — Connect to any language version of the Minecraft Wiki
+
+## Requirements
+
+- [Python 3.12+](https://www.python.org/)
+- [uv](https://docs.astral.sh/uv/) (recommended package manager)
 
 ## Installation
 
-Currently, only local installation is supported, other might follow!
-
-### Installing via Smithery
-
-To install Minecraft Wiki Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@L3-N0X/Minecraft-Wiki-MCP):
-
-```bash
-npx -y @smithery/cli install @L3-N0X/Minecraft-Wiki-MCP --client claude
-```
-
-### Manual Installation
+### Quick Start with uv
 
 ```bash
 # Clone the repository
@@ -39,67 +32,147 @@ git clone https://github.com/L3-N0X/Minecraft-Wiki-MCP.git
 cd Minecraft-Wiki-MCP
 
 # Install dependencies
-npm install
+uv sync
 
-# Build the project
-npm run build
+# Run the server
+uv run minecraft-wiki-mcp
 ```
 
-Then, you can use the server with this configuration in your `claude_desktop_config.json`:
+### With pip
 
-```json
-{
-  "mcpServers": {
-    "minecraft-wiki": {
-      "command": "node",
-      "args": [
-        "/path/to/your/dist/server.js", 
-        "--api-url",
-        "https://minecraft.wiki/api.php"
-      ]
-    }
-  }
-}
+```bash
+pip install -e .
+minecraft-wiki-mcp
 ```
 
 ## Configuration
 
-Make sure to update the path to the server.js file!
-By default, this server connects to <https://minecraft.wiki/api.php> (English version). You can use a different wiki API URL by using the `api-url` option to access different language versions:
+### Claude Desktop
+
+Add to your `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "minecraft-wiki": {
-      "command": "node",
-       "args": [
-        "/path/to/your/dist/server.js", 
-        "--api-url",
-        "https://de.minecraft.wiki/api.php" // German version
+      "command": "uv",
+      "args": [
+        "--directory", "/path/to/Minecraft-Wiki-MCP",
+        "run", "minecraft-wiki-mcp"
       ]
     }
   }
 }
 ```
 
+### Claude Code
+
+```bash
+claude mcp add minecraft-wiki -- uv --directory /path/to/Minecraft-Wiki-MCP run minecraft-wiki-mcp
+```
+
+### Multi-Language Support
+
+By default, the server connects to the English wiki (`https://minecraft.wiki/api.php`).
+Set the `MINECRAFT_WIKI_API_URL` environment variable to use a different language:
+
+```json
+{
+  "mcpServers": {
+    "minecraft-wiki": {
+      "command": "uv",
+      "args": [
+        "--directory", "/path/to/Minecraft-Wiki-MCP",
+        "run", "minecraft-wiki-mcp"
+      ],
+      "env": {
+        "MINECRAFT_WIKI_API_URL": "https://de.minecraft.wiki/api.php"
+      }
+    }
+  }
+}
+```
+
+### Streamable HTTP Transport
+
+By default, the server uses **stdio** transport (communication via stdin/stdout).
+For remote or multi-client access, you can use **Streamable HTTP** transport:
+
+```bash
+# Start the HTTP server (default: http://127.0.0.1:8000/mcp)
+uv run minecraft-wiki-mcp --transport streamable-http
+```
+
+Then connect clients to `http://127.0.0.1:8000/mcp`. For example, in Claude Code:
+
+```bash
+claude mcp add --transport http minecraft-wiki http://localhost:8000/mcp
+```
+
+Configure host and port via environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MINECRAFT_WIKI_HOST` | `127.0.0.1` | Host to bind the HTTP server to |
+| `MINECRAFT_WIKI_PORT` | `8000` | Port for the HTTP server |
+| `MINECRAFT_WIKI_API_URL` | `https://minecraft.wiki/api.php` | MediaWiki API endpoint |
+
 ## Available Tools
 
-This server provides the following tools for interacting with the Minecraft Wiki:
+### Search & Navigation
 
-### Search and Navigation
-
-- `MinecraftWiki_searchWiki`: Search for structures, entities, items, or blocks
-- `MinecraftWiki_getPageSummary`: Get page summary and list of available sections
-- `MinecraftWiki_resolveRedirect`: Resolve redirect pages to their targets
-
-### Page Content
-
-- `MinecraftWiki_getPageContent`: Get full page content
-- `MinecraftWiki_getPageSection`: Get specific section content
-- `MinecraftWiki_getSectionsInPage`: Get overview of all sections in a page
+| Tool | Description |
+|------|-------------|
+| `minecraft_wiki_search` | Search for pages by name (items, blocks, entities, structures) |
+| `minecraft_wiki_get_page` | Get page summary + section list, or full page content |
+| `minecraft_wiki_get_section` | Read a specific section's raw wikitext |
+| `minecraft_wiki_resolve_redirect` | Check if a title redirects and find the target |
 
 ### Categories
 
-- `MinecraftWiki_listAllCategories`: List all available categories
-- `MinecraftWiki_listCategoryMembers`: List pages within a category
-- `MinecraftWiki_getCategoriesForPage`: Get categories for a specific page
+| Tool | Description |
+|------|-------------|
+| `minecraft_wiki_get_categories` | Get categories for a page, or browse categories by prefix |
+| `minecraft_wiki_get_category_members` | List all pages in a category |
+
+### Recommended Workflow
+
+For best results, LLMs should follow this pattern:
+
+1. **Search** — `minecraft_wiki_search` to find the right page
+2. **Summarize** — `minecraft_wiki_get_page` to see the intro and available sections
+3. **Deep dive** — `minecraft_wiki_get_section` to read specific sections
+
+## Development
+
+```bash
+# Install dependencies
+uv sync
+
+# Run with the MCP Inspector for interactive testing
+uv run mcp dev src/minecraft_wiki_mcp/server.py
+
+# Syntax check
+uv run python -m py_compile src/minecraft_wiki_mcp/server.py
+```
+
+## Migrating from v1
+
+v2 is a complete rewrite from TypeScript to Python. Key changes:
+
+| v1 Tool | v2 Tool | Notes |
+|---------|---------|-------|
+| `MinecraftWiki_searchWiki` | `minecraft_wiki_search` | Renamed |
+| `MinecraftWiki_getPageSummary` | `minecraft_wiki_get_page` | Now includes section list |
+| `MinecraftWiki_getPageContent` | `minecraft_wiki_get_page` | Use `include_all_content=true` |
+| `MinecraftWiki_getSectionsInPage` | `minecraft_wiki_get_page` | Section list included in response |
+| `MinecraftWiki_getPageSection` | `minecraft_wiki_get_section` | Returns wikitext instead of stripped HTML |
+| `MinecraftWiki_getCategoriesForPage` | `minecraft_wiki_get_categories` | Pass `title` parameter |
+| `MinecraftWiki_listAllCategories` | `minecraft_wiki_get_categories` | Pass `prefix` parameter |
+| `MinecraftWiki_listCategoryMembers` | `minecraft_wiki_get_category_members` | Renamed |
+| `MinecraftWiki_resolveRedirect` | `minecraft_wiki_resolve_redirect` | Renamed |
+
+**Other breaking changes:**
+- Configuration via `MINECRAFT_WIKI_API_URL` env var instead of `--api-url` CLI flag
+- Runtime: Python 3.12+ with `uv` instead of Node.js
+- Content is raw wikitext instead of HTML-stripped text
