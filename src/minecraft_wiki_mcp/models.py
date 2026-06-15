@@ -41,8 +41,8 @@ class PageInput(BaseModel):
     include_all_content: bool = Field(
         default=False,
         description=(
-            "If True, return the full page wikitext content. "
-            "If False (default), return only the lead section summary and a list "
+            "If True, return the full page converted to clean Markdown. "
+            "If False (default), return only the lead section summary in Markdown and a list "
             "of available sections — this is usually the best starting point."
         ),
     )
