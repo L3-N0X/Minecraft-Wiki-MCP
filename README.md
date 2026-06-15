@@ -1,7 +1,5 @@
 # Minecraft Wiki MCP
 
-[![smithery badge](https://smithery.ai/badge/@L3-N0X/Minecraft-Wiki-MCP)](https://smithery.ai/server/@L3-N0X/Minecraft-Wiki-MCP)
-
 An MCP Server for browsing the official Minecraft Wiki!
 
 > [!WARNING]
@@ -109,13 +107,16 @@ Then connect clients to `http://127.0.0.1:8000/mcp`. For example, in Claude Code
 claude mcp add --transport http minecraft-wiki http://localhost:8000/mcp
 ```
 
-Configure host and port via environment variables:
+Configure host, port, and security via environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `MINECRAFT_WIKI_HOST` | `127.0.0.1` | Host to bind the HTTP server to |
 | `MINECRAFT_WIKI_PORT` | `8000` | Port for the HTTP server |
 | `MINECRAFT_WIKI_API_URL` | `https://minecraft.wiki/api.php` | MediaWiki API endpoint |
+| `MINECRAFT_WIKI_ENABLE_SECURITY` | *Auto* | Enforce DNS rebinding protection (Host/Origin header check). Defaults to `true` if hosting on localhost/loopback, and `false` otherwise (e.g. when binding to `0.0.0.0` on a VPS). |
+| `MINECRAFT_WIKI_ALLOWED_HOSTS` | *Auto* | Comma-separated list of allowed `Host` headers. (e.g. `mcp.example.com:*,123.45.67.89:*`). Only active if security is enabled. |
+| `MINECRAFT_WIKI_ALLOWED_ORIGINS` | *Auto* | Comma-separated list of allowed `Origin` headers. (e.g. `https://mcp.example.com:*`). Only active if security is enabled. |
 
 ## Available Tools
 
