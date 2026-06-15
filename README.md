@@ -130,11 +130,11 @@ The public hosted URL `https://minecraft-wiki-mcp.goett.top/mcp` can be easily a
   2. Select the option to add a remote server using the **HTTP/SSE** transport.
   3. Enter `https://minecraft-wiki-mcp.goett.top/mcp` as the server URL.
 
-* **ChatGPT Website (Custom GPTs / Apps)**:
-  ChatGPT supports connecting custom tools even on the free tier when developer mode is enabled:
-  1. Create a new Custom GPT/App in the builder interface.
-  2. Add a new **Custom Action**.
-  3. Point it to `https://minecraft-wiki-mcp.goett.top/mcp`. FastMCP automatically serves standard REST/OpenAPI endpoints so ChatGPT can discover and call the wiki search/fetch actions natively.
+* **ChatGPT Website (Custom Apps)**:
+  ChatGPT supports connecting custom MCP servers natively (even on the free tier) when developer mode is enabled:
+  1. Open ChatGPT **Settings** -> **Apps** -> **Advanced Settings** and enable **Developer Mode**.
+  2. Go back and create a new app.
+  3. Enter `https://minecraft-wiki-mcp.goett.top/mcp` as the MCP server URL to connect.
 
 ### Configuration
 
