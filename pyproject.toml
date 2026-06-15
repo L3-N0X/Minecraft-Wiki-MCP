@@ -4,10 +4,11 @@ version = "2.0.0"
 description = "MCP Server for browsing the official Minecraft Wiki"
 readme = "README.md"
 license = "ISC"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
     "mcp[cli]>=1.27,<2",
     "httpx>=0.28",
+    "minecraft-wiki-mdifier",
 ]
 
 [project.scripts]

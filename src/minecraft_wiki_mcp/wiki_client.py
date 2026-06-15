@@ -185,8 +185,6 @@ class WikiClient:
         parse = lead_data.get("parse", {})
         resolved_title = parse.get("title", title)
         lead_wikitext = parse.get("wikitext", "")
-        if lead_wikitext:
-            lead_wikitext = await self.expand_templates(lead_wikitext, resolved_title)
 
         # The sections from section=0 only gives us the lead section metadata.
         # We need a separate call to get all sections.
@@ -215,8 +213,6 @@ class WikiClient:
         parse = data.get("parse", {})
         resolved_title = parse.get("title", title)
         wikitext = parse.get("wikitext", "")
-        if wikitext:
-            wikitext = await self.expand_templates(wikitext, resolved_title)
 
         sections = [
             SectionInfo(
@@ -257,8 +253,6 @@ class WikiClient:
         parse = data.get("parse", {})
         resolved_title = parse.get("title", title)
         wikitext = parse.get("wikitext", "")
-        if wikitext:
-            wikitext = await self.expand_templates(wikitext, resolved_title)
 
         return SectionContent(
             title=resolved_title,

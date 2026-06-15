@@ -23,6 +23,7 @@ Environment variables:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from collections.abc import AsyncIterator
@@ -32,6 +33,8 @@ from dataclasses import dataclass
 import httpx
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
+from minecraft_wiki_mdifier.cache import get_or_load_persistent_cache, save_cache
+from minecraft_wiki_mdifier.converter import MarkdownConverter
 
 from minecraft_wiki_mcp.models import (
     CategoriesInput,
@@ -85,10 +88,46 @@ mcp = FastMCP(
         "Recommended workflow: 1) Search for the item/block/entity/structure name, "
         "2) Get the page summary to see available sections, "
         "3) Read specific sections for detailed content. "
-        "Content is returned as raw MediaWiki wikitext."
+        "Content is returned as clean Markdown."
     ),
     lifespan=app_lifespan,
 )
+
+# ---------------------------------------------------------------------------
+# Markdown conversion helper
+# ---------------------------------------------------------------------------
+
+
+def _detect_lang(api_url: str) -> str:
+    """Detect language key ('zh', 'ja', or 'en') from a MediaWiki API URL."""
+    api_url_lower = api_url.lower()
+    if "zh.minecraft.wiki" in api_url_lower:
+        return "zh"
+    if "ja.minecraft.wiki" in api_url_lower:
+        return "ja"
+    return "en"
+
+
+def _to_markdown_sync(wikitext: str, title: str, api_url: str) -> str:
+    """Synchronous helper that does the actual markdown conversion using the library."""
+    lang = _detect_lang(api_url)
+    cache = get_or_load_persistent_cache()
+    converter = MarkdownConverter(lang=lang, template_cache=cache)
+    converter.expander.api_url = api_url
+    result = converter._convert_wikitext(wikitext, title)
+    try:
+        save_cache(cache)
+    except Exception:
+        # Ignore cache save failures to avoid blocking tool responses
+        pass
+    return result
+
+
+async def to_markdown(wikitext: str, title: str, api_url: str) -> str:
+    """Asynchronously convert raw wikitext to clean Markdown using a thread pool."""
+    if not wikitext:
+        return ""
+    return await asyncio.to_thread(_to_markdown_sync, wikitext, title, api_url)
 
 # ---------------------------------------------------------------------------
 # Helper
@@ -159,11 +198,11 @@ async def search(params: SearchInput, ctx: Context[ServerSession, AppContext]) -
 async def get_page(params: PageInput, ctx: Context[ServerSession, AppContext]) -> str:
     """Get a Minecraft Wiki page's summary or full content.
 
-    By default, returns the lead section (introduction) as wikitext plus a
+    By default, returns the lead section (introduction) as Markdown plus a
     list of all page sections with their indices.  This helps you decide
     which section to read next with ``minecraft_wiki_get_section``.
 
-    Set ``include_all_content=True`` to get the full page wikitext instead
+    Set ``include_all_content=True`` to get the full page Markdown instead
     (can be very large for some pages).
 
     Redirects are resolved automatically.
@@ -172,10 +211,11 @@ async def get_page(params: PageInput, ctx: Context[ServerSession, AppContext]) -
     try:
         if params.include_all_content:
             page = await wiki.get_page_content(params.title)
+            markdown = await to_markdown(page.wikitext, page.title, API_URL)
             return json.dumps(
                 {
                     "title": page.title,
-                    "wikitext": page.wikitext,
+                    "markdown": markdown,
                     "sections": [
                         {"index": s.index, "title": s.title, "level": s.level}
                         for s in page.sections
@@ -185,10 +225,11 @@ async def get_page(params: PageInput, ctx: Context[ServerSession, AppContext]) -
             )
         else:
             summary = await wiki.get_page_summary(params.title)
+            lead_markdown = await to_markdown(summary.lead_wikitext, summary.title, API_URL)
             return json.dumps(
                 {
                     "title": summary.title,
-                    "lead_summary": summary.lead_wikitext,
+                    "lead_markdown": lead_markdown,
                     "sections": [
                         {"index": s.index, "title": s.title, "level": s.level}
                         for s in summary.sections
@@ -213,7 +254,7 @@ async def get_page(params: PageInput, ctx: Context[ServerSession, AppContext]) -
 async def get_section(
     params: SectionInput, ctx: Context[ServerSession, AppContext]
 ) -> str:
-    """Get a specific section from a Minecraft Wiki page as raw wikitext.
+    """Get a specific section from a Minecraft Wiki page as clean Markdown.
 
     Use ``minecraft_wiki_get_page`` first to see available sections and
     their indices, then call this tool with the desired section index.
@@ -224,11 +265,12 @@ async def get_section(
     wiki = _get_wiki(ctx)
     try:
         section = await wiki.get_section(params.title, params.section)
+        markdown = await to_markdown(section.wikitext, section.title, API_URL)
         return json.dumps(
             {
                 "title": section.title,
                 "section_index": section.section_index,
-                "wikitext": section.wikitext,
+                "markdown": markdown,
             },
             ensure_ascii=False,
         )
