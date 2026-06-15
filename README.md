@@ -116,6 +116,47 @@ Or for a local server:
 claude mcp add --transport http minecraft-wiki http://localhost:8000/mcp
 ```
 
+### Connecting Major Platforms to the Public Instance
+
+The public hosted URL `https://minecraft-wiki-mcp.goett.top/mcp` can be easily added across major platforms that support remote MCP connections or custom apps:
+
+* **Claude Code**:
+  ```bash
+  claude mcp add --transport http minecraft-wiki https://minecraft-wiki-mcp.goett.top/mcp
+  ```
+
+* **Claude Desktop**: Add this to your `claude_desktop_config.json`:
+  ```json
+  {
+    "mcpServers": {
+      "minecraft-wiki": {
+        "command": "curl",
+        "args": [
+          "-s",
+          "-X",
+          "POST",
+          "https://minecraft-wiki-mcp.goett.top/mcp",
+          "-H",
+          "Content-Type: application/json"
+        ]
+      }
+    }
+  }
+  ```
+
+* **Claude Web (Claude.ai) & Perplexity Website**: 
+  1. Open your settings page and go to the MCP servers/integrations section.
+  2. Select the option to add a remote server using the **HTTP/SSE** transport.
+  3. Enter `https://minecraft-wiki-mcp.goett.top/mcp` as the server URL.
+
+* **ChatGPT Website (Custom GPTs / Apps)**:
+  ChatGPT supports connecting custom tools even on the free tier when developer mode is enabled:
+  1. Create a new Custom GPT/App in the builder interface.
+  2. Add a new **Custom Action**.
+  3. Point it to `https://minecraft-wiki-mcp.goett.top/mcp`. FastMCP automatically serves standard REST/OpenAPI endpoints so ChatGPT can discover and call the wiki search/fetch actions natively.
+
+### Configuration
+
 Configure host, port, and security via environment variables:
 
 | Variable | Default | Description |
